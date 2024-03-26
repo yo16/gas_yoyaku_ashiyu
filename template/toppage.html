@@ -18,12 +18,15 @@ limitations under the License.
   <head>
     <base target="_top">
     <title>足湯予約</title>
+    <script>
+
+    </script>
   </head>
   <body>
     <h1>避難所 能登足湯♨ 予約表</h1>
-    今日は<?= today ?>
+    今日は<b><?= today ?></b>
     <hr />
-    <?= curdt ?>の予約状況
+    <input type="date" value=<?= curdt ?> />の予約状況
     <table border="1">
     <?
     for (let i=0; i<bookings.length; i++) {

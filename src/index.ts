@@ -124,8 +124,8 @@ function createPageToppage(e: any): GoogleAppsScript.HTML.HtmlTemplate {
   });
 
   // テンプレートへ変数を設定
-  tmpl.today = formatDt(new Date());
-  tmpl.curdt = formatDt(curDt);
+  tmpl.today = formatDtStr(new Date());
+  tmpl.curdt = formatDtInput(curDt);
   tmpl.bookings = bookingsForDisp;
 
   return tmpl;
@@ -134,9 +134,15 @@ function createPageToppage(e: any): GoogleAppsScript.HTML.HtmlTemplate {
 // ---------------------------------------------------------------
 // ユーティリティ関数
 // 日付を MM/DD(weekday) 形式にする
-function formatDt(dt: Date): string {
+function formatDtStr(dt: Date): string {
   const WD = ['日', '月', '火', '水', '木', '金', '土'];
   return `${dt.getMonth() + 1}月${dt.getDate()}日(${WD[dt.getDay()]})`;
+}
+// 日付を YYYY-MM-DD 形式にする
+function formatDtInput(dt: Date): string {
+  const mm = `0${dt.getMonth() + 1}`.slice(-2);
+  const dd = `0${dt.getDate()}`.slice(-2);
+  return `${dt.getFullYear()}-${mm}-${dd}`;
 }
 
 // 時刻を hh:mm～ 形式にする ※ TIMETABLEのフォーマット。完全一致検索で利用しているので一致させること。
