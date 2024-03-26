@@ -18,12 +18,22 @@ limitations under the License.
   <head>
     <base target="_top">
     <title>足湯予約</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
       th, td {
         padding: 5px;
       }
       td.booking_state {
         text-align: center;
+      }
+
+      /* Google Fonts */
+      .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 200,
+        'GRAD' 0,
+        'opsz' 20
       }
     </style>
     <script>
@@ -49,7 +59,7 @@ limitations under the License.
       <td class="booking_state">
         <?
         if (row.name) {
-          output.append('×');
+          output.append('<span class="material-symbols-outlined">close</span>');
         } else {
           output.append('予約可能');
         }
