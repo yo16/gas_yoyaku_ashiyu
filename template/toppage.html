@@ -18,6 +18,14 @@ limitations under the License.
   <head>
     <base target="_top">
     <title>足湯予約</title>
+    <style>
+      th, td {
+        padding: 5px;
+      }
+      td.booking_state {
+        text-align: center;
+      }
+    </style>
     <script>
 
     </script>
@@ -38,7 +46,7 @@ limitations under the License.
       <th>
         <?= row.timeStr ?>
       </td>
-      <td>
+      <td class="booking_state">
         <?
         if (row.name) {
           output.append('×');
