@@ -16,6 +16,7 @@
 
 const props = PropertiesService.getScriptProperties();
 const SHEET_ID: string | null = props.getProperty('sheet_id');
+const PAGE_TITLE: string | null = props.getProperty('page_title');
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
 function doGet(e: any): GoogleAppsScript.HTML.HtmlOutput {
@@ -36,6 +37,7 @@ function createPage(e: any, page: string): GoogleAppsScript.HTML.HtmlOutput {
   }
   const htmlOut = template.evaluate();
   htmlOut.addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  htmlOut.setTitle(String(PAGE_TITLE));
   return htmlOut;
 }
 

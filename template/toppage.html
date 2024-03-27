@@ -17,7 +17,6 @@ limitations under the License.
 <html lang="ja">
   <head>
     <base target="_top">
-    <title>足湯予約</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,200,0,0" />
     <style>
       th, td {
@@ -37,8 +36,13 @@ limitations under the License.
           'opsz' 20;
       }
     </style>
+    <?
+      const appUrl = getAppUrl();
+    ?>
     <script>
-
+      function redirectTo(elm) {
+        window.top.location.href = <?= appUrl ?> + "?date=" + elm.value;
+      }
     </script>
   </head>
   <body>
@@ -51,13 +55,16 @@ limitations under the License.
     <div>
       <a
         <?
-          const appUrl = getAppUrl();
           output.append(`href="${appUrl}?date=${prevdt}"`);
         ?>
       ><span class="material-symbols-outlined">
           arrow_back
       </span></a>
-      <input type="date" value=<?= curdt ?> />
+      <input
+        type="date"
+        value=<?= curdt ?>
+        onchange="redirectTo(this);"
+      />
       <a
         <?
           output.append(`href="${appUrl}?date=${nextdt}"`);
