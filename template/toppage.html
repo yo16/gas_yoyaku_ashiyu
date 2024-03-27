@@ -18,7 +18,7 @@ limitations under the License.
   <head>
     <base target="_top">
     <title>足湯予約</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,200,0,0" />
     <style>
       th, td {
         padding: 5px;
@@ -29,11 +29,12 @@ limitations under the License.
 
       /* Google Fonts */
       .material-symbols-outlined {
+        vertical-align: middle;
         font-variation-settings:
-        'FILL' 0,
-        'wght' 200,
-        'GRAD' 0,
-        'opsz' 20
+          'FILL' 0,
+          'wght' 200,
+          'GRAD' 0,
+          'opsz' 20;
       }
     </style>
     <script>
@@ -44,7 +45,27 @@ limitations under the License.
     <h1>避難所 能登足湯♨ 予約表</h1>
     今日は<b><?= today ?></b>
     <hr />
-    <input type="date" value=<?= curdt ?> />の予約状況
+    <div>
+      ■予約状況
+    </div>
+    <div>
+      <a
+        <?
+          const appUrl = getAppUrl();
+          output.append(`href="${appUrl}?date=${prevdt}"`);
+        ?>
+      ><span class="material-symbols-outlined">
+          arrow_back
+      </span></a>
+      <input type="date" value=<?= curdt ?> />
+      <a
+        <?
+          output.append(`href="${appUrl}?date=${nextdt}"`);
+        ?>
+      ><span class="material-symbols-outlined">
+          arrow_forward
+      </span></a>
+    </div>
     <table border="1">
     <?
     for (let i=0; i<bookings.length; i++) {

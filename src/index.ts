@@ -71,7 +71,9 @@ const TIMETABLE: string[] = [
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createPageToppage(e: any): GoogleAppsScript.HTML.HtmlTemplate {
   // 表示する日
-  const curDt: Date = e.bookdt || new Date();
+  const curDt: Date = e.parameter.date
+    ? new Date(String(e.parameter.date))
+    : new Date();
 
   // テンプレートを取得
   const tmpl = HtmlService.createTemplateFromFile('toppage');
@@ -123,9 +125,16 @@ function createPageToppage(e: any): GoogleAppsScript.HTML.HtmlTemplate {
     };
   });
 
+  const prevDt = new Date(curDt.getTime());
+  prevDt.setDate(prevDt.getDate() - 1);
+  const nextDt = new Date(curDt.getTime());
+  nextDt.setDate(nextDt.getDate() + 1);
+
   // テンプレートへ変数を設定
   tmpl.today = formatDtStr(new Date());
   tmpl.curdt = formatDtInput(curDt);
+  tmpl.prevdt = formatDtInput(prevDt);
+  tmpl.nextdt = formatDtInput(nextDt);
   tmpl.bookings = bookingsForDisp;
 
   return tmpl;
@@ -162,4 +171,10 @@ function isSameDay(dt1: Date, dt2: Date): boolean {
     dt1.getMonth() === dt2.getMonth() &&
     dt1.getDate() === dt2.getDate()
   );
+}
+
+// GASのURLを取得する関数
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getAppUrl() {
+  return ScriptApp.getService().getUrl();
 }
