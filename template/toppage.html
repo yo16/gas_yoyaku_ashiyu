@@ -40,11 +40,11 @@ limitations under the License.
       // このアプリのURL
       const appUrl = getAppUrl();
 
-      // 900 形式の文字列を、9:00～へ変換する
-      function formatHHMM(hm) {
-        const zeroSup = ("0" + hm).slice(-4);
-        const h = String(Number(zeroSup.substring(0,2)));
-        const m = zeroSup.substring(2,4);
+      // 0900 形式の文字列を、9:00～へ変換する
+      // サーバーで実行する関数
+      function formatHHMM_svr(hm) {
+        const h = String(Number(hm.substring(0,2)));
+        const m = hm.substring(2,4);
         return `${h}:${m}～`;
       }
     ?>
@@ -54,18 +54,39 @@ limitations under the License.
       }
       function book(dt, tm) {
         // 名前を聞く
-        const userName = window.prompt("お名前を入力してください", "");
-        if (!userName) { return; }
+        const userName = window.prompt(
+          `${formatDtStr(dt)} ${formatHHMM(tm)} で予約します。\n` +
+          "お名前を入力してください。",
+          ""
+        );
+        if (userName == null) {
+          console.log("Canceled.");
+          return;
+        }
 
         // トリムして、有効なら投げる
         const userName_trimmed = userName.replaceAll(/[ 　]/g, "");
-        if (userName_trimmed.length>0) {
+        if (userName_trimmed.length > 0) {
           // submit
           document.getElementById("bookDate").value = dt;
           document.getElementById("bookTime").value = tm;
           document.getElementById("userName").value = userName;
           document.getElementById("frmRegister").submit();
+        } else {
+          console.log(`Canceled.[${userName}]`);
         }
+      }
+      // 0900 形式の文字列を、9:00～へ変換する
+      function formatHHMM(hm) {
+        const h = String(Number(hm.substring(0,2)));
+        const m = hm.substring(2,4);
+        return `${h}:${m}～`;
+      }
+      // 日付を MM/DD(weekday) 形式にする
+      function formatDtStr(dtParam) {
+        const dt = new Date(dtParam);
+        const WD = ['日', '月', '火', '水', '木', '金', '土'];
+        return `${dt.getMonth() + 1}月${dt.getDate()}日(${WD[dt.getDay()]})`;
       }
     </script>
   </head>
@@ -106,7 +127,7 @@ limitations under the License.
       }
     ?>
       <th>
-        <?= formatHHMM(row.timeStr) ?>
+        <?= formatHHMM_svr(row.timeStr) ?>
       </td>
       <td class="booking_state">
         <?
@@ -130,10 +151,17 @@ limitations under the License.
     ?>
     </table>
     <div style="display:none">
-      <form method="POST" action="<?= appUrl ?>" id="frmRegister" name="frmRegister">
+      <form
+        method="POST"
+        action="<?= appUrl ?>"
+        enctype="application/x-www-form-urlencoded"
+        id="frmRegister"
+        name="frmRegister"
+      >
         <input type="text" id="bookDate" name="bookDate" />
         <input type="text" id="bookTime" name="bookTime" />
         <input type="text" id="userName" name="userName" />
+        <input type="submit" />
       </form>
     </div>
   </body>

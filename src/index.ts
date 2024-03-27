@@ -29,14 +29,28 @@ function doGet(e: any): GoogleAppsScript.HTML.HtmlOutput {
 // Post
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
 function doPost(e: any): GoogleAppsScript.HTML.HtmlOutput {
-  console.log(e.postData.contents);
-  const htmlOutput = createPage(e, e.parameter.page);
+  // 不正な場合はスキップ
+  if (e === null || e.postData === null || e.postData.contents === null) {
+    return createPage(e);
+  }
+
+  // 登録
+  const json = formUrlEncodedToJson(e.postData.contents);
+  registBooking({
+    bookDate: json.bookDate,
+    bookTime: json.bookTime,
+    userName: json.userName,
+  });
+
+  const htmlOutput = createPage(e, json.bookDate);
 
   return htmlOutput;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function createPage(e: any, page: string): GoogleAppsScript.HTML.HtmlOutput {
+function createPage(
+  e: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+  page: string = ''
+): GoogleAppsScript.HTML.HtmlOutput {
   let template = null;
   switch (page) {
     case 'toppage':
@@ -54,8 +68,8 @@ function createPage(e: any, page: string): GoogleAppsScript.HTML.HtmlOutput {
 // ---------------------------------------------------------------
 // トップページ
 const TIMETABLE: string[] = [
-  '900',
-  '930',
+  '0900',
+  '0930',
   '1000',
   '1030',
   '1100',
@@ -94,7 +108,8 @@ function createPageToppage(e: any): GoogleAppsScript.HTML.HtmlTemplate {
   let values: any[] = [];
   if (SHEET_ID) {
     // シートを取得
-    const sh = SpreadsheetApp.openById(SHEET_ID);
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    const sh = ss.getSheets()[0];
     // 値を全部取得
     values = sh.getDataRange().getValues();
   }
@@ -115,8 +130,6 @@ function createPageToppage(e: any): GoogleAppsScript.HTML.HtmlTemplate {
       });
     }
   });
-  // // timeでソート
-  // curDtBookings.sort((a: BookInfo, b: BookInfo) => a.time - b.time);
   // 日付文字列に対応する人を設定
   type FulledTime = Record<string, string>;
   const bookingsByTime: FulledTime = curDtBookings.reduce(
@@ -144,12 +157,38 @@ function createPageToppage(e: any): GoogleAppsScript.HTML.HtmlTemplate {
 
   // テンプレートへ変数を設定
   tmpl.today = formatDtStr(new Date());
-  tmpl.curdt = formatDtInput(curDt);
-  tmpl.prevdt = formatDtInput(prevDt);
-  tmpl.nextdt = formatDtInput(nextDt);
+  tmpl.curdt = formatDtInput(curDt, 'input');
+  tmpl.prevdt = formatDtInput(prevDt, 'input');
+  tmpl.nextdt = formatDtInput(nextDt, 'input');
   tmpl.bookings = bookingsForDisp;
 
   return tmpl;
+}
+
+// ---------------------------------------------------------------
+// 登録処理
+type BookingRegisterInfo = {
+  bookDate: string;
+  bookTime: string;
+  userName: string;
+};
+function registBooking(info: BookingRegisterInfo): boolean {
+  console.log(info.bookDate);
+  // シートに登録
+  if (SHEET_ID) {
+    // シートを取得
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    const sh = ss.getSheets()[0];
+    // 最終行
+    const lastRow = sh.getLastRow();
+    // 追加
+    sh.getRange(lastRow + 1, 1).setValue(
+      formatDtInput(new Date(info.bookDate), 'sheet')
+    );
+    sh.getRange(lastRow + 1, 2).setValue(formatTimeNum2Time(info.bookTime));
+    sh.getRange(lastRow + 1, 3).setValue(info.userName);
+  }
+  return true;
 }
 
 // ---------------------------------------------------------------
@@ -160,20 +199,52 @@ function formatDtStr(dt: Date): string {
   return `${dt.getMonth() + 1}月${dt.getDate()}日(${WD[dt.getDay()]})`;
 }
 // 日付を YYYY-MM-DD 形式にする
-function formatDtInput(dt: Date): string {
-  const mm = `0${dt.getMonth() + 1}`.slice(-2);
-  const dd = `0${dt.getDate()}`.slice(-2);
-  return `${dt.getFullYear()}-${mm}-${dd}`;
+// inputでは、MMとDDに前ゼロが必須、separatorは-
+// Spread Sheetでは、前ゼロは入れてはいけなく、separatorは/
+function formatDtInput(dt: Date, style: string): string {
+  // 前ゼロを付与
+  const baseMM = `0${dt.getMonth() + 1}`.slice(-2);
+  const baseDD = `0${dt.getDate()}`.slice(-2);
+
+  let mm = '';
+  let dd = '';
+  let separator = '-';
+
+  switch (style) {
+    case 'sheet':
+      // 前ゼロを取る
+      mm = String(Number(baseMM));
+      dd = String(Number(baseDD));
+      // セパレータは/
+      separator = '/';
+      break;
+
+    case 'input':
+    default:
+      mm = baseMM;
+      dd = baseDD;
+      separator = '-';
+  }
+
+  return `${dt.getFullYear()}${separator}${mm}${separator}${dd}`;
 }
 
 // 時刻を hhmm 形式にする ※ TIMETABLEのフォーマット。完全一致検索で利用しているので一致させること。
 function formatTime(dt: Date): string {
-  // 前ゼロをつけた文字列にする
+  // 前ゼロを"つけた"文字列にする
   const strH = `0${dt.getHours()}`.slice(-2);
   const strM = `0${dt.getMinutes()}`.slice(-2);
 
   // 前ゼロを除外してフォーマット化
   return `${strH}${strM}`;
+}
+
+// 時刻の数値を(900とか)を、9:00に変換
+function formatTimeNum2Time(hm: string) {
+  const zeroSup = ('0' + hm).slice(-4);
+  const h = String(Number(zeroSup.substring(0, 2)));
+  const m = zeroSup.substring(2, 4);
+  return `${h}:${m}`;
 }
 
 // ２つのDateを比較し、同じ日かどうか判定
@@ -189,4 +260,17 @@ function isSameDay(dt1: Date, dt2: Date): boolean {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getAppUrl() {
   return ScriptApp.getService().getUrl();
+}
+
+// FormUrlEncodedをjson形式に変換
+function formUrlEncodedToJson(formData: string) {
+  type ParamKeyVaue = Record<string, string>;
+  const json: ParamKeyVaue = {};
+  formData.split('&').forEach(pair => {
+    // eslint-disable-next-line prefer-const
+    let [key, value] = pair.split('=');
+    value = decodeURIComponent(value.replace(/\+/g, ' '));
+    json[key] = value;
+  });
+  return json;
 }
