@@ -31,6 +31,9 @@ limitations under the License.
       #inpCalender {
         font-size: x-large;
       }
+      .booking_completed {
+        background-color: #ff0;
+      }
 
       /* Google Fonts */
       .material-symbols-outlined {
@@ -74,7 +77,7 @@ limitations under the License.
         const userName_trimmed = userName.replaceAll(/[ 　]/g, "");
         if (userName_trimmed.length > 0) {
           google.script.run.withSuccessHandler( ret => {
-            redirectTo(dt);
+            replaceReservedTime(tm);
           })
           .withFailureHandler( console.error )
           .registBooking({
@@ -97,6 +100,22 @@ limitations under the License.
         const dt = new Date(dtParam);
         const WD = ['日', '月', '火', '水', '木', '金', '土'];
         return `${dt.getMonth() + 1}月${dt.getDate()}日(${WD[dt.getDay()]})`;
+      }
+      // 今表示しているページの、指定の時刻のボタンを、予約済の状態にする
+      // 見た目だけの設定
+      function replaceReservedTime(tm) {
+        const elmId = `td${tm}`;
+        console.log({elmId});
+        const elm = document.getElementById(elmId);
+        console.log(elm);
+        // 要素を削除
+        elm.innerHTML = "";
+        // 予約済のマークを追加
+        // <span class="material-symbols-outlined">close</span>
+        const spnClose = document.createElement("span");
+        spnClose.classList.add("booking_completed");  // tdでなくspanに入れた方がなんか目立つ
+        spnClose.textContent = "予約完了";
+        elm.appendChild(spnClose);
       }
     </script>
   </head>
@@ -140,7 +159,7 @@ limitations under the License.
       <th>
         <?= formatHHMM_svr(row.timeStr) ?>
       </td>
-      <td class="booking_state">
+      <td class="booking_state" id=<?= `td${row.timeStr}` ?>>
         <?
         if (row.name) {
           output.append('<span class="material-symbols-outlined">close</span>');
@@ -148,7 +167,7 @@ limitations under the License.
           output.append(
             "<button " +
               "class=\"btnBook\" " +
-              `onclick="book('${curdt}', '${row.timeStr}')"` +
+              `onclick="book('${curdt}', '${row.timeStr}')" ` +
             ">予約可能</button>"
           );
         }
