@@ -18,8 +18,18 @@ const props = PropertiesService.getScriptProperties();
 const SHEET_ID: string | null = props.getProperty('sheet_id');
 const PAGE_TITLE: string | null = props.getProperty('page_title');
 
+// Get
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
 function doGet(e: any): GoogleAppsScript.HTML.HtmlOutput {
+  const htmlOutput = createPage(e, e.parameter.page);
+
+  return htmlOutput;
+}
+
+// Post
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+function doPost(e: any): GoogleAppsScript.HTML.HtmlOutput {
+  console.log(e.postData.contents);
   const htmlOutput = createPage(e, e.parameter.page);
 
   return htmlOutput;
@@ -44,30 +54,30 @@ function createPage(e: any, page: string): GoogleAppsScript.HTML.HtmlOutput {
 // ---------------------------------------------------------------
 // トップページ
 const TIMETABLE: string[] = [
-  '9:00～',
-  '9:30～',
-  '10:00～',
-  '10:30～',
-  '11:00～',
-  '11:30～',
-  '12:00～',
-  '12:30～',
-  '13:00～',
-  '13:30～',
-  '14:00～',
-  '14:30～',
-  '15:00～',
-  '15:30～',
-  '16:00～',
-  '16:30～',
-  '17:00～',
-  '17:30～',
-  '18:00～',
-  '18:30～',
-  '19:00～',
-  '19:30～',
-  '20:00～',
-  '20:30～',
+  '900',
+  '930',
+  '1000',
+  '1030',
+  '1100',
+  '1130',
+  '1200',
+  '1230',
+  '1300',
+  '1330',
+  '1400',
+  '1430',
+  '1500',
+  '1530',
+  '1600',
+  '1630',
+  '1700',
+  '1730',
+  '1800',
+  '1830',
+  '1900',
+  '1930',
+  '2000',
+  '2030',
 ];
 // トップページを返す
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -156,14 +166,14 @@ function formatDtInput(dt: Date): string {
   return `${dt.getFullYear()}-${mm}-${dd}`;
 }
 
-// 時刻を hh:mm～ 形式にする ※ TIMETABLEのフォーマット。完全一致検索で利用しているので一致させること。
+// 時刻を hhmm 形式にする ※ TIMETABLEのフォーマット。完全一致検索で利用しているので一致させること。
 function formatTime(dt: Date): string {
   // 前ゼロをつけた文字列にする
   const strH = `0${dt.getHours()}`.slice(-2);
   const strM = `0${dt.getMinutes()}`.slice(-2);
 
   // 前ゼロを除外してフォーマット化
-  return `${strH}:${strM}～`;
+  return `${strH}${strM}`;
 }
 
 // ２つのDateを比較し、同じ日かどうか判定

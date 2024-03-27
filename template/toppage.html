@@ -37,11 +37,35 @@ limitations under the License.
       }
     </style>
     <?
+      // このアプリのURL
       const appUrl = getAppUrl();
+
+      // 900 形式の文字列を、9:00～へ変換する
+      function formatHHMM(hm) {
+        const zeroSup = ("0" + hm).slice(-4);
+        const h = String(Number(zeroSup.substring(0,2)));
+        const m = zeroSup.substring(2,4);
+        return `${h}:${m}～`;
+      }
     ?>
     <script>
       function redirectTo(elm) {
         window.top.location.href = <?= appUrl ?> + "?date=" + elm.value;
+      }
+      function book(dt, tm) {
+        // 名前を聞く
+        const userName = window.prompt("お名前を入力してください", "");
+        if (!userName) { return; }
+
+        // トリムして、有効なら投げる
+        const userName_trimmed = userName.replaceAll(/[ 　]/g, "");
+        if (userName_trimmed.length>0) {
+          // submit
+          document.getElementById("bookDate").value = dt;
+          document.getElementById("bookTime").value = tm;
+          document.getElementById("userName").value = userName;
+          document.getElementById("frmRegister").submit();
+        }
       }
     </script>
   </head>
@@ -82,14 +106,19 @@ limitations under the License.
       }
     ?>
       <th>
-        <?= row.timeStr ?>
+        <?= formatHHMM(row.timeStr) ?>
       </td>
       <td class="booking_state">
         <?
         if (row.name) {
           output.append('<span class="material-symbols-outlined">close</span>');
         } else {
-          output.append('予約可能');
+          output.append(
+            "<button " +
+              "class=\"btnBook\" " +
+              `onclick="book('${curdt}', '${row.timeStr}')"` +
+            ">予約可能</button>"
+          );
         }
         ?>
       </td>
@@ -100,5 +129,12 @@ limitations under the License.
     }
     ?>
     </table>
+    <div style="display:none">
+      <form method="POST" action="<?= appUrl ?>" id="frmRegister" name="frmRegister">
+        <input type="text" id="bookDate" name="bookDate" />
+        <input type="text" id="bookTime" name="bookTime" />
+        <input type="text" id="userName" name="userName" />
+      </form>
+    </div>
   </body>
 </html>
