@@ -26,27 +26,6 @@ function doGet(e: any): GoogleAppsScript.HTML.HtmlOutput {
   return htmlOutput;
 }
 
-// Post
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-function doPost(e: any): GoogleAppsScript.HTML.HtmlOutput {
-  // 不正な場合はスキップ
-  if (e === null || e.postData === null || e.postData.contents === null) {
-    return createPage(e);
-  }
-
-  // 登録
-  const json = formUrlEncodedToJson(e.postData.contents);
-  registBooking({
-    bookDate: json.bookDate,
-    bookTime: json.bookTime,
-    userName: json.userName,
-  });
-
-  const htmlOutput = createPage(e, json.bookDate);
-
-  return htmlOutput;
-}
-
 function createPage(
   e: any, // eslint-disable-line @typescript-eslint/no-explicit-any
   page: string = ''
@@ -54,12 +33,21 @@ function createPage(
   let template = null;
   switch (page) {
     case 'toppage':
-      template = createPageToppage(e);
+      template = createPageToppageByDate(
+        e.parameter.date ? new Date(String(e.parameter.date)) : new Date()
+      );
       break;
     default:
-      template = createPageToppage(e);
+      template = createPageToppageByDate(
+        e.parameter.date ? new Date(String(e.parameter.date)) : new Date()
+      );
   }
-  const htmlOut = template.evaluate();
+  return decorateHtmlOut(template);
+}
+function decorateHtmlOut(
+  tmpl: GoogleAppsScript.HTML.HtmlTemplate
+): GoogleAppsScript.HTML.HtmlOutput {
+  const htmlOut = tmpl.evaluate();
   htmlOut.addMetaTag('viewport', 'width=device-width, initial-scale=1');
   htmlOut.setTitle(String(PAGE_TITLE));
   return htmlOut;
@@ -94,13 +82,9 @@ const TIMETABLE: string[] = [
   '2030',
 ];
 // トップページを返す
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function createPageToppage(e: any): GoogleAppsScript.HTML.HtmlTemplate {
-  // 表示する日
-  const curDt: Date = e.parameter.date
-    ? new Date(String(e.parameter.date))
-    : new Date();
-
+function createPageToppageByDate(
+  curDt: Date
+): GoogleAppsScript.HTML.HtmlTemplate {
   // テンプレートを取得
   const tmpl = HtmlService.createTemplateFromFile('toppage');
 
@@ -172,8 +156,8 @@ type BookingRegisterInfo = {
   bookTime: string;
   userName: string;
 };
-function registBooking(info: BookingRegisterInfo): boolean {
-  console.log(info.bookDate);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function registBooking(info: BookingRegisterInfo): string {
   // シートに登録
   if (SHEET_ID) {
     // シートを取得
@@ -187,8 +171,10 @@ function registBooking(info: BookingRegisterInfo): boolean {
     );
     sh.getRange(lastRow + 1, 2).setValue(formatTimeNum2Time(info.bookTime));
     sh.getRange(lastRow + 1, 3).setValue(info.userName);
+
+    return info.bookDate;
   }
-  return true;
+  return 'Error! in registBooking...';
 }
 
 // ---------------------------------------------------------------
@@ -263,6 +249,7 @@ function getAppUrl() {
 }
 
 // FormUrlEncodedをjson形式に変換
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formUrlEncodedToJson(formData: string) {
   type ParamKeyVaue = Record<string, string>;
   const json: ParamKeyVaue = {};

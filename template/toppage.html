@@ -49,8 +49,8 @@ limitations under the License.
       }
     ?>
     <script>
-      function redirectTo(elm) {
-        window.top.location.href = <?= appUrl ?> + "?date=" + elm.value;
+      function redirectTo(dt_value) {
+        window.top.location.href = <?= appUrl ?> + "?date=" + dt_value;
       }
       function book(dt, tm) {
         // 名前を聞く
@@ -67,11 +67,20 @@ limitations under the License.
         // トリムして、有効なら投げる
         const userName_trimmed = userName.replaceAll(/[ 　]/g, "");
         if (userName_trimmed.length > 0) {
-          // submit
-          document.getElementById("bookDate").value = dt;
-          document.getElementById("bookTime").value = tm;
-          document.getElementById("userName").value = userName;
-          document.getElementById("frmRegister").submit();
+          google.script.run.withSuccessHandler( ret => {
+            //window.top.location.href = <?= appUrl ?> + "?date=" + dt;
+            //window.location.reload();
+            //const cal = document.getElementById("inpCalender");
+            //cal.value="2024-03-01";
+            //redirectTo("2024-03-02"); // これはセーフ
+            redirectTo(dt);
+          })
+          .withFailureHandler( console.error )
+          .registBooking({
+            bookDate: dt,
+            bookTime: tm,
+            userName: userName_trimmed,
+          });
         } else {
           console.log(`Canceled.[${userName}]`);
         }
@@ -108,7 +117,8 @@ limitations under the License.
       <input
         type="date"
         value=<?= curdt ?>
-        onchange="redirectTo(this);"
+        onchange="redirectTo(this.value);"
+        id="inpCalender"
       />
       <a
         <?
