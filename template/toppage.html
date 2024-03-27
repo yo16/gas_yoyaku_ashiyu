@@ -68,11 +68,6 @@ limitations under the License.
         const userName_trimmed = userName.replaceAll(/[ 　]/g, "");
         if (userName_trimmed.length > 0) {
           google.script.run.withSuccessHandler( ret => {
-            //window.top.location.href = <?= appUrl ?> + "?date=" + dt;
-            //window.location.reload();
-            //const cal = document.getElementById("inpCalender");
-            //cal.value="2024-03-01";
-            //redirectTo("2024-03-02"); // これはセーフ
             redirectTo(dt);
           })
           .withFailureHandler( console.error )
